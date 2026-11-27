@@ -200,7 +200,7 @@ class TestRouterShadowAndServer(unittest.TestCase):
             # GET / dashboard HTML
             with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5) as r:
                 html = r.read().decode("utf-8")
-                self.assertIn("RouteCalib Live Proxy", html)
+                self.assertIn("RouteCalib Control Plane", html)
 
             # POST /v1/chat/completions twice -> second call should hit semantic/exact cache
             payload = json.dumps(
@@ -250,6 +250,17 @@ class TestRouterShadowAndServer(unittest.TestCase):
             for p in plots:
                 self.assertTrue(p.is_file())
                 self.assertGreater(p.stat().st_size, 1000)
+
+
+    def test_github_pages_site_and_exported_model_assets(self) -> None:
+        root = Path(__file__).resolve().parent.parent
+        html = (root / "docs" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("Test the Real Calibrated Router in Your Browser", html)
+        model_data = json.loads((root / "docs" / "assets" / "calibrated_model.json").read_text(encoding="utf-8"))
+        self.assertIn("scorer", model_data)
+        self.assertIn("calibrator", model_data)
+        for img in ("pareto_cost_accuracy.png", "conformal_coverage.png", "drift_detection.png"):
+            self.assertTrue((root / "docs" / "assets" / img).is_file())
 
 
 if __name__ == "__main__":
